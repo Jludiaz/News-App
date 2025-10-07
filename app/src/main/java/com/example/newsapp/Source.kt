@@ -1,4 +1,6 @@
 package com.example.newsapp
 
-class source {
-}
+data class Source(
+    val name: String,
+    val description: String
+)
