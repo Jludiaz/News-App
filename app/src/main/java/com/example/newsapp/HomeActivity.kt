@@ -58,7 +58,9 @@ class HomeActivity : ComponentActivity(){
 fun HomeActivity(modifier: Modifier){
     var context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
-    var searchedQuery by remember {mutableStateOf("")}
+    var searchedQuery by remember {
+        (mutableStateOf(prefs.getString("searchedQuery", "")?:"Search Query"))
+    }
     var searchOnClick: () -> Unit
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -78,8 +80,9 @@ fun HomeActivity(modifier: Modifier){
             Button(
                 onClick = {
                     prefs.edit { putString("searchedQuery", searchedQuery) }
-                    val intent = Intent(context,HomeActivity()::class.java)
-                    context.startActivity(intent)
+                    val intentSource = Intent(context,SourceActivity()::class.java)
+                    intentSource.putExtra("searchedQuery", "${searchedQuery.toString()}")
+                    context.startActivity(intentSource)
                 },
                 modifier = Modifier.size(width = 85.dp, height = 55.dp),
                 shape = RoundedCornerShape(15.dp),

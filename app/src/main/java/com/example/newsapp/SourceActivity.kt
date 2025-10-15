@@ -1,5 +1,6 @@
 package com.example.newsapp
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
@@ -64,45 +65,32 @@ class SourceActivity : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val searchedQuery: String? = intent.getStringExtra("searchedQuery")
+
         setContent {
             NewsAppTheme {
-                SourceActivity(modifier = Modifier.fillMaxSize())
+                SourceActivity(modifier = Modifier.fillMaxSize(),
+                    searchedQuery)
             }
         }
     }
 }
 
 @Composable
-fun SourceActivity(modifier: Modifier){
+fun SourceActivity(modifier: Modifier, searchedQuery: String?){
     var context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
-    var searchedQuery by remember {mutableStateOf("")}
-    var searchOnClick: () -> Unit
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        //Search Bar and Button to Search Query
-        Row() {
-            TextField(
-                value = searchedQuery,
-                onValueChange = { searchedQuery = it },
-                label = { Text("Search news, topics, and more") },
-                placeholder = { Text("Enter Username") },
-                singleLine = true,
-                shape = RoundedCornerShape(15.dp),
-            )
-            Button(
-                onClick = {
-                    prefs.edit { putString("searchedQuery", searchedQuery) }
-                },
-                modifier = Modifier.size(width = 85.dp, height = 55.dp),
-                shape = RoundedCornerShape(15.dp),
-            ) {
-                Text(text = "Enter")
-            }
-        }
+        //Searched Query Text
+        Text(
+            text="Search for: $searchedQuery"
+        )
 
         //Categories Dropdown Menu
         var expanded by remember { mutableStateOf(false) }
@@ -199,7 +187,8 @@ fun getFakeData(): List<Source>{
 @Preview(showBackground = true)
 @Composable
 fun SourcePreview() {
+    val searchedQuery: String? = ""
     NewsAppTheme {
-        SourceActivity(modifier = Modifier)
+        SourceActivity(modifier = Modifier, searchedQuery)
     }
 }
