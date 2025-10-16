@@ -4,11 +4,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +62,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.edit
 import com.example.newsapp.ui.theme.NewsAppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.Collections.list
 
 class SourceActivity : ComponentActivity(){
@@ -70,7 +75,7 @@ class SourceActivity : ComponentActivity(){
 
         setContent {
             NewsAppTheme {
-                SourceActivity(modifier = Modifier.fillMaxSize(),
+                SourceScreen(modifier = Modifier.fillMaxSize(),
                     searchedQuery)
             }
         }
@@ -78,7 +83,7 @@ class SourceActivity : ComponentActivity(){
 }
 
 @Composable
-fun SourceActivity(modifier: Modifier, searchedQuery: String?){
+fun SourceScreen(modifier: Modifier, searchedQuery: String?){
     var context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
 
@@ -134,61 +139,63 @@ fun SourceActivity(modifier: Modifier, searchedQuery: String?){
         Spacer(Modifier.height(20.dp))
 
         //Source List
-        displaySources()
-
+        displaySources(modifier)
     }
 }
 
 @Composable
-fun displaySources(){
-    val mySourceList= getFakeData()
-    LazyColumn {
+fun displaySources(modifier: Modifier){
+    val context = LocalContext.current
+    val apiKey = context.getString(R.string.NewsKey)
+    val newsManager = remember { NewsManager() }
+
+    //getter
+    var mySourceList by remember {mutableStateOf<List<Source>>(emptyList())}
+
+    LaunchedEffect(apiKey){
+        val result = withContext(Dispatchers.IO){
+            newsManager.retrieveSources(apiKey)
+        }
+        mySourceList = result
+    }
+
+    LazyColumn(modifier = Modifier){
         items(mySourceList){currentSource->
             SourceBusinessCard(
                 source = currentSource,
-                modifier=Modifier.padding(1.dp)
+                modifier = Modifier.padding(1.dp)
             )
+
         }
     }
+
 }
 
 @Composable
 fun SourceBusinessCard(source: Source, modifier:Modifier=Modifier){
+    val context = LocalContext.current
     Card(modifier=Modifier.fillMaxWidth()
-        .padding(1.dp)){
+        .padding(1.dp)
+        .clickable(onClick= {
+            val sourceCardIntent = Intent(Intent.ACTION_VIEW)
+            context.startActivity(sourceCardIntent)
+        })
+    ){
         Row(modifier=Modifier.padding(2.dp)) {
-            Image(
-                painter = painterResource(R.drawable.ic_launcher_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(60.dp)
-                    .padding(1.dp)
-            )
-            Spacer(modifier=Modifier.width(5.dp))
-            Column {
+            Row {
                 Text(source.name)
+                Spacer(modifier=Modifier.width(2.dp))
                 Text(source.description)
             }
         }
     }
 }
 
-
-fun getFakeData(): List<Source>{
-    return listOf(
-        Source("TechCrunch", "The latest technology news and information on startups."),
-        Source("BBC News", "Trusted global news coverage and analysis."),
-        Source("ESPN", "Sports news, scores, and highlights."),
-        Source("National Geographic", "Exploring science, nature, and culture worldwide."),
-        Source("Reuters", "Breaking international business and financial news.")
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SourcePreview() {
-    val searchedQuery: String? = ""
-    NewsAppTheme {
-        SourceActivity(modifier = Modifier, searchedQuery)
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SourcePreview() {
+//    val searchedQuery: String? = ""
+//    NewsAppTheme {
+//        SourceScreen(modifier = Modifier, searchedQuery)
+//    }
+//}
