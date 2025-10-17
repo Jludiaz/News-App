@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,6 +33,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -75,8 +75,7 @@ class SourceActivity : ComponentActivity(){
 
         setContent {
             NewsAppTheme {
-                SourceScreen(modifier = Modifier.fillMaxSize(),
-                    searchedQuery)
+                SourceScreen(modifier = Modifier.fillMaxSize(), searchedQuery)
             }
         }
     }
@@ -84,8 +83,9 @@ class SourceActivity : ComponentActivity(){
 
 @Composable
 fun SourceScreen(modifier: Modifier, searchedQuery: String?){
-    var context = LocalContext.current
+    val context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
+    var category by remember { mutableStateOf("general") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -94,7 +94,11 @@ fun SourceScreen(modifier: Modifier, searchedQuery: String?){
     ) {
         //Searched Query Text
         Text(
-            text="Search for: $searchedQuery"
+            text="Search for: $searchedQuery",
+            modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+            textAlign = TextAlign.Center,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
         )
 
         //Categories Dropdown Menu
@@ -116,22 +120,63 @@ fun SourceScreen(modifier: Modifier, searchedQuery: String?){
                 onDismissRequest = { expanded = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text("Option 1") },
-                    onClick = { /* Do something... */ }
+                    text = { Text("Business") },
+                    onClick = {
+                        category = "business"
+                        expanded = false
+                    }
                 )
                 DropdownMenuItem(
-                    text = { Text("Option 2") },
-                    onClick = { /* Do something... */ }
+                    text = { Text("Entertainment") },
+                    onClick = {
+                        category = "entertainment"
+                        expanded = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("General") },
+                    onClick = {
+                        category = "general"
+                        expanded = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Health") },
+                    onClick = {
+                        category = "health"
+                        expanded = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Science") },
+                    onClick = {
+                        category = "science"
+                        expanded = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Sports") },
+                    onClick = {
+                        category = "sports"
+                        expanded = false
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Technology") },
+                    onClick = {
+                        category = "technology"
+                        expanded = false
+                    }
                 )
             }
         }
         //Skip Sources
-        Button(
+        ElevatedButton(
             onClick = {
                 prefs.edit { putString("searchedQuery", searchedQuery) }
             },
-            modifier = Modifier.size(width = 150.dp, height = 55.dp),
-            shape = RoundedCornerShape(15.dp),
+            modifier = Modifier.fillMaxWidth(0.4f),
+            shape = RoundedCornerShape(15.dp)
         ) {
             Text(text="Skip Sources")
         }
@@ -139,12 +184,12 @@ fun SourceScreen(modifier: Modifier, searchedQuery: String?){
         Spacer(Modifier.height(20.dp))
 
         //Source List
-        displaySources(modifier)
+        DisplaySources(modifier,category, searchedQuery)
     }
 }
 
 @Composable
-fun displaySources(modifier: Modifier){
+fun DisplaySources(modifier: Modifier, category: String, searchedQuery: String?){
     val context = LocalContext.current
     val apiKey = context.getString(R.string.NewsKey)
     val newsManager = remember { NewsManager() }
@@ -152,18 +197,21 @@ fun displaySources(modifier: Modifier){
     //getter
     var mySourceList by remember {mutableStateOf<List<Source>>(emptyList())}
 
-    LaunchedEffect(apiKey){
+    // Launch NewsManager and retrieve all sources + save them to list
+    LaunchedEffect(category){
         val result = withContext(Dispatchers.IO){
-            newsManager.retrieveSources(apiKey)
+            newsManager.retrieveSources(apiKey,category)
         }
         mySourceList = result
     }
 
+    // Lazy Column for all business cards
     LazyColumn(modifier = Modifier){
         items(mySourceList){currentSource->
             SourceBusinessCard(
                 source = currentSource,
-                modifier = Modifier.padding(1.dp)
+                searchedQuery = searchedQuery,
+                modifier = Modifier.padding(4.dp)
             )
 
         }
@@ -172,18 +220,32 @@ fun displaySources(modifier: Modifier){
 }
 
 @Composable
-fun SourceBusinessCard(source: Source, modifier:Modifier=Modifier){
+fun SourceBusinessCard(source: Source, searchedQuery: String?, modifier: Modifier = Modifier){
     val context = LocalContext.current
-    Card(modifier=Modifier.fillMaxWidth()
+    Card(
+        modifier=modifier
         .padding(1.dp)
-        .clickable(onClick= {
-            val sourceCardIntent = Intent(Intent.ACTION_VIEW)
-            context.startActivity(sourceCardIntent)
-        })
+        .clickable{
+            // Save source name
+            val prefs = context.getSharedPreferences(
+                "my_prefs", Context.MODE_PRIVATE)
+            prefs.edit { putString("selectedSource", source.name) } //save source name to preferences
+
+            // Launch result screen
+            val intent = Intent(context, ResultActivity::class.java).apply {
+                putExtra("searchedQuery", searchedQuery)
+                putExtra("selectedSource", source.name)
+            }
+            context.startActivity(intent)
+        }
     ){
+        //Source Card UI
         Row(modifier=Modifier.padding(2.dp)) {
-            Row {
-                Text(source.name)
+            Column {
+                Text(
+                    source.name,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier=Modifier.width(2.dp))
                 Text(source.description)
             }
@@ -191,11 +253,11 @@ fun SourceBusinessCard(source: Source, modifier:Modifier=Modifier){
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SourcePreview() {
-//    val searchedQuery: String? = ""
-//    NewsAppTheme {
-//        SourceScreen(modifier = Modifier, searchedQuery)
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun SourcePreview() {
+    val searchedQuery: String? = ""
+    NewsAppTheme {
+        SourceScreen(modifier = Modifier, searchedQuery)
+    }
+}

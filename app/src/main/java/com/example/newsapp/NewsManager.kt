@@ -1,5 +1,6 @@
 package com.example.newsapp
 
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -59,7 +60,7 @@ class NewsManager {
         }
     }
 
-    suspend fun retrieveSources(apiKey: String): List<Source>{
+    suspend fun retrieveSources(apiKey: String, categorySelection: String): List<Source>{
         val request = Request.Builder()
             .url("https://newsapi.org/v2/sources?apiKey=$apiKey")
             .header("authorization","Bearer $apiKey")
@@ -72,21 +73,30 @@ class NewsManager {
             val sources=mutableListOf<Source>()
             val json= JSONObject(responseBody)
             val sourcesJSON=json.getJSONArray("sources")
+
             for (i in 0 until sourcesJSON.length()){
-                val getCurrentSource = sourcesJSON.getJSONObject(i)
-                val sourceName = getCurrentSource.getString("name")
-                val sourceDescription = getCurrentSource.getString("description")
+                val currentSource = sourcesJSON.getJSONObject(i)
+                val sourceCategory = currentSource.getString("category")
 
-                val source=Source(
-                    name = sourceName,
-                    description = sourceDescription
-                )
-                sources.add(source)
+                //Log.d("NewsDebug", "Category selected: $categorySelection")
+
+                if(categorySelection.isEmpty() || categorySelection == sourceCategory){
+                    sources.add(
+                        Source(
+                            name = currentSource.getString("name"),
+                            description = currentSource.getString("description"),
+                            category = sourceCategory
+                        )
+                    )
+                }
             }
-
             return sources
         }else{
             return listOf()
         }
     }
+
+//    suspend fun retrieveTopHeadlines(apiKey: String): List<NewsArticle>{
+//
+//    }
 }

@@ -56,12 +56,14 @@ class HomeActivity : ComponentActivity(){
 
 @Composable
 fun HomeActivity(modifier: Modifier){
-    var context = LocalContext.current
+    val context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
     var searchedQuery by remember {
         (mutableStateOf(prefs.getString("searchedQuery", "")?:"Search Query"))
     }
     var searchOnClick: () -> Unit
+    var isButtonEnabled by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -84,8 +86,10 @@ fun HomeActivity(modifier: Modifier){
                     intentSource.putExtra("searchedQuery", "${searchedQuery.toString()}")
                     context.startActivity(intentSource)
                 },
+                enabled = isButtonEnabled,
                 modifier = Modifier.size(width = 85.dp, height = 55.dp),
                 shape = RoundedCornerShape(15.dp),
+                colors = ButtonColors(Color.Green,Color.Black,Color.Black,Color.Red)
             ) {
                 Text(text="Enter")
             }
@@ -120,8 +124,6 @@ fun HomeActivity(modifier: Modifier){
                 )
             )
         }
-
-
 
     }
 }
