@@ -26,12 +26,6 @@ class NewsManager {
         selectedSourceID: String?,
         selectedSourceName: String?
     ): List<Article> {
-//        val request = Request.Builder()
-//            .url("https://newsapi.org/v2/everything?apiKey=$apiKey")
-//            .header("authorization", "Bearer $apiKey")
-//            .get()
-//            .build()
-
         val urlBuilder = StringBuilder("https://newsapi.org/v2/everything?apiKey=$apiKey")
 
 //         Add query parameters if they exist
@@ -39,8 +33,12 @@ class NewsManager {
             if (it.isNotEmpty()) urlBuilder.append("&q=${Uri.encode(it)}")
         }
 //
-        selectedSourceID?.let {
-            if (it.isNotEmpty()) urlBuilder.append("&sources=${Uri.encode(it)}")
+        // Skip Sources Button
+        if (selectedSourceID != "SKIP SOURCES") {
+            // Add sources parameters if they exist
+            selectedSourceID?.let {
+                if (it.isNotEmpty()) urlBuilder.append("&sources=${Uri.encode(it)}")
+            }
         }
 
         // Establish my request
@@ -87,7 +85,7 @@ class NewsManager {
                     content = articleObj.optString("content", "")
                 )
                 //add article to the source
-                if (selectedSourceName == article.sourceName || selectedSourceID == article.sourceId) {
+                if (selectedSourceID == "SKIP SOURCES" || (selectedSourceName == article.sourceName || selectedSourceID == article.sourceId)) {
                     articles.add(article)
                 }
             }

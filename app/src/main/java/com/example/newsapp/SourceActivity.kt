@@ -174,7 +174,14 @@ fun SourceScreen(modifier: Modifier, searchedQuery: String?){
         //Skip Sources
         ElevatedButton(
             onClick = {
+                Log.d("NewsDebug", "Skip Sources Button Clicked")
                 prefs.edit { putString("searchedQuery", searchedQuery) }
+                // Pass query to activity
+                val intent = Intent(context, ResultsActivity::class.java).apply {
+                    putExtra("searchedQuery", searchedQuery) // Query Search
+                    putExtra("selectedSourceId", "SKIP SOURCES") // Query Search
+                }
+                context.startActivity(intent)
             },
             modifier = Modifier.fillMaxWidth(0.4f),
             shape = RoundedCornerShape(15.dp)
