@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,7 +69,7 @@ fun HomeActivity(modifier: Modifier){
         verticalArrangement = Arrangement.Center
     ) {
         //Search Bar and Button to Search Query
-        Row() {
+        Row {
             TextField(
                 value = searchedQuery,
                 onValueChange = {searchedQuery = it},
@@ -83,7 +82,7 @@ fun HomeActivity(modifier: Modifier){
                 onClick = {
                     prefs.edit { putString("searchedQuery", searchedQuery) }
                     val intentSource = Intent(context,SourceActivity()::class.java)
-                    intentSource.putExtra("searchedQuery", "${searchedQuery.toString()}")
+                    intentSource.putExtra("searchedQuery", searchedQuery.toString())
                     context.startActivity(intentSource)
                 },
                 enabled = isButtonEnabled,

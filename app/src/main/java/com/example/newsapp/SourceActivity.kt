@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -213,10 +214,8 @@ fun DisplaySources(modifier: Modifier, category: String, searchedQuery: String?)
                 searchedQuery = searchedQuery,
                 modifier = Modifier.padding(4.dp)
             )
-
         }
     }
-
 }
 
 @Composable
@@ -231,11 +230,14 @@ fun SourceBusinessCard(source: Source, searchedQuery: String?, modifier: Modifie
                 "my_prefs", Context.MODE_PRIVATE)
             prefs.edit { putString("selectedSource", source.name) } //save source name to preferences
 
-            // Launch result screen
-            val intent = Intent(context, ResultActivity::class.java).apply {
-                putExtra("searchedQuery", searchedQuery)
-                putExtra("selectedSource", source.name)
+            // Pass query, source name & ID to the Results Activity
+            Log.d("NewsDebug", "SourceActivity Before Intent")
+            val intent = Intent(context, ResultsActivity::class.java).apply {
+                putExtra("searchedQuery", searchedQuery) // Query Search
+                putExtra("selectedSourceID", source.id) // Source ID
+                putExtra("selectedSourceName", source.name) // Source Name
             }
+            Log.d("NewsDebug", "SourceActivity Intent Created")
             context.startActivity(intent)
         }
     ){

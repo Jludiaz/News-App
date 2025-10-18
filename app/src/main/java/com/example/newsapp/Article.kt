@@ -1,8 +1,8 @@
 package com.example.newsapp
 
-import java.util.Date
-
-data class NewsArticle(
+data class Article(
+    val sourceId: String,
+    val sourceName: String,
     val author: String,
     val title: String,
     val description: String,
