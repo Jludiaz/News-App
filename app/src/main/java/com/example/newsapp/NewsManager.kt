@@ -139,17 +139,24 @@ class NewsManager {
         }
     }
 
+    data class HeadlinesResponse(
+        val articles: List<Article>,
+        val totalResults: Int
+    )
     suspend fun retrieveTopHeadlines(
         apiKey: String,
-        selectedHeadlineCategory: String?
-    ): List<Article> {
+        selectedHeadlineCategory: String?,
+        currentPage: Int
+    ): HeadlinesResponse {
         Log.d("NewsDebug", "Building URL String: ")
         val urlBuilder = StringBuilder("https://newsapi.org/v2/top-headlines?apiKey=$apiKey")
-
-        // Add category parameter if provided
+        //  Add page number for paging
+        urlBuilder.append("&page=$currentPage")
+        // Add category if provided
         selectedHeadlineCategory?.let {
             if (it.isNotEmpty()) urlBuilder.append("&category=${Uri.encode(it)}")
         }
+
         // Establish my request
         val request = Request.Builder()
             .url(urlBuilder.toString())
@@ -162,7 +169,7 @@ class NewsManager {
         val responseBody = response.body?.string()
         if (!response.isSuccessful || responseBody.isNullOrEmpty()) {
             Log.e("NewsDebug", "retrieveTopHeadline HTTP error: ${response.code} - ${responseBody ?: "Empty"}")
-            return emptyList()
+            return HeadlinesResponse(emptyList(),0)
         }
 
         try {
@@ -170,12 +177,13 @@ class NewsManager {
             val json = JSONObject(responseBody)
             if (!json.has("articles")) {
                 Log.e("NewsDebug", "retrieveTopHeadline No 'articles' field in response: $responseBody")
-                return emptyList()
+                return HeadlinesResponse(emptyList(),0)
             }
 
             // Get json information
             val articles = mutableListOf<Article>()
             val newsJSON = json.getJSONArray("articles")
+            val totalResults = json.optInt("totalResults")
 
             for (i in 0 until newsJSON.length()) {
                 val articleObj = newsJSON.getJSONObject(i)
@@ -199,11 +207,11 @@ class NewsManager {
             }
 
             Log.d("NewsDebug", "retrieveTopHeadline Fetched ${articles.size} articles successfully")
-            return articles
+            return HeadlinesResponse(articles,totalResults)
 
         } catch (e: Exception) {
             Log.e("NewsDebug", "retrieveTopHeadline JSON parsing failed", e)
-            return emptyList()
+            return HeadlinesResponse(emptyList(),0)
         }
     }
 
@@ -212,6 +220,8 @@ class NewsManager {
         locationName: String?
     ): List<Article>{
         val urlBuilder = StringBuilder("https://newsapi.org/v2/everything?apiKey=$apiKey")
+
+        // Add location to URL title search
         urlBuilder.append("&qInTitle=${Uri.encode(locationName)}")
 
         val request = Request.Builder()

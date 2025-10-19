@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,8 +47,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
+import kotlin.math.ceil
 
-class TopHeadlinesActivity : ComponentActivity(){
+class TopHeadlinesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -65,13 +67,14 @@ class TopHeadlinesActivity : ComponentActivity(){
     @Composable
     fun TopHeadlinesScreen(
         modifier: Modifier
-    ){
+    ) {
         val context = LocalContext.current
 
         // Save to Headline Category to Preferences
         var selectedHeadlineCategory by remember { mutableStateOf("general") }
         val prefs = context.getSharedPreferences(
-            "my_prefs", Context.MODE_PRIVATE)
+            "my_prefs", Context.MODE_PRIVATE
+        )
         prefs.edit {
             putString("selectedHeadlineCategory", selectedHeadlineCategory)
         }
@@ -96,10 +99,10 @@ class TopHeadlinesActivity : ComponentActivity(){
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Button(
-                    onClick = { expanded = !expanded},
+                    onClick = { expanded = !expanded },
                     modifier = Modifier.fillMaxWidth(0.4f).align(Alignment.CenterEnd)
                 ) {
-                    Text(text="Categories")
+                    Text(text = "Categories")
                     Icon(Icons.Default.ArrowDropDown, contentDescription = "Categories")
                 }
                 DropdownMenu(
@@ -172,46 +175,76 @@ class TopHeadlinesActivity : ComponentActivity(){
         val apiKey = context.getString(R.string.NewsKey)
         val newsManager = remember { NewsManager() }
 
-        var myArticleList by remember {mutableStateOf<List<Article>>(emptyList())}
+        // Paging variables
+        var currentPage by remember { mutableIntStateOf(1) }
+        var maxPage by remember { mutableIntStateOf(1) }
+
+        var myArticleList by remember { mutableStateOf<List<Article>>(emptyList()) }
 
         //Launch NewsManager
-        LaunchedEffect(selectedHeadlineCategory){
-            Log.d("NewsDebug", "Launching retrieveTopHeadlines for category = $selectedHeadlineCategory")
-
-            val result = withContext(Dispatchers.IO){
-                newsManager.retrieveTopHeadlines(apiKey,selectedHeadlineCategory)
+        LaunchedEffect(selectedHeadlineCategory, currentPage) {
+            Log.d("TopHeadlinesDebug", "Launching retrieveTopHeadlines for category = $selectedHeadlineCategory")
+            val result = withContext(Dispatchers.IO) {
+                newsManager.retrieveTopHeadlines(apiKey, selectedHeadlineCategory, currentPage)
             }
+            myArticleList = result.articles
+            maxPage = ceil(result.totalResults / 20.0).toInt().coerceAtLeast(1)
 
-            Log.d("NewsDebug", "Got ${result.size} top headline articles")
-            myArticleList = result
+            Log.d("TopHeadlinesDebug", "Max Page size: $maxPage")
         }
 
-        // Lazy Column for all business cards
-        LazyColumn(modifier = Modifier){
-            items(myArticleList){currentArticle->
-                ArticleBusinessCard(
-                    article = currentArticle,
-                    modifier = Modifier.padding(4.dp)
-                )
+        //Paging UI
+        Column(
+            modifier = modifier.padding(10.dp)
+        ) {
+            // Paging controls
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = { currentPage-- },
+                    enabled = currentPage > 1
+                ) {
+                    Text("Previous")
+                }
+
+                Text("Page $currentPage of $maxPage", fontWeight = FontWeight.Bold)
+
+                Button(
+                    onClick = { currentPage++ },
+                    enabled = currentPage < maxPage
+                ) {
+                    Text("Next")
+                }
+            }
+
+            // Lazy Column for all business cards
+            LazyColumn(modifier = Modifier) {
+                items(myArticleList) { currentArticle ->
+                    ArticleBusinessCard(
+                        article = currentArticle,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
             }
         }
     }
-
     @Composable
-    fun ArticleBusinessCard(article: Article, modifier: Modifier = Modifier){
+    fun ArticleBusinessCard(article: Article, modifier: Modifier = Modifier) {
         val context = LocalContext.current
         Card(
             modifier = modifier
                 .padding(1.dp)
-                .clickable{
-                    val articleCardIntent = Intent(Intent.ACTION_VIEW).apply{
-                        data= article.url.toUri()
+                .clickable {
+                    val articleCardIntent = Intent(Intent.ACTION_VIEW).apply {
+                        data = article.url.toUri()
                     }
                     context.startActivity(articleCardIntent)
                 }
         ) {
-            Row(modifier=Modifier.padding(2.dp)){
-                Column{
+            Row(modifier = Modifier.padding(2.dp)) {
+                Column {
                     AsyncImage(
                         model = article.urlToImage,
                         contentDescription = null,
@@ -221,17 +254,17 @@ class TopHeadlinesActivity : ComponentActivity(){
                     )
                     Text(
                         article.title,
-                        fontWeight= FontWeight.Bold
+                        fontWeight = FontWeight.Bold
                     )
-                    Spacer(modifier=Modifier.width(2.dp))
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         article.sourceName,
-                        fontWeight= FontWeight.Medium
+                        fontWeight = FontWeight.Medium
                     )
-                    Spacer(modifier=Modifier.width(2.dp))
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         article.description,
-                        fontWeight= FontWeight.Light
+                        fontWeight = FontWeight.Light
                     )
                 }
             }

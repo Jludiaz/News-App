@@ -121,5 +121,5 @@ fun LoginPreview() {
 }
 
 fun checkUsernamePassword(username: String, password: String): Boolean{
-    return username.isNotBlank()&&password.isNotBlank()
+    return username.length >= 5 && password.length >= 8
 }

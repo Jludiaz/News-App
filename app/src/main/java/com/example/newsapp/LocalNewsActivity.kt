@@ -63,7 +63,6 @@ class LocalNewsActivity : ComponentActivity(){
         }
     }
 
-    @OptIn(UnstableApi::class)
     @Composable
     fun LocalNewsScreen() {
         val context = LocalContext.current
@@ -153,7 +152,6 @@ class LocalNewsActivity : ComponentActivity(){
                     }
                 }
             }
-
         }
     }
 
@@ -197,6 +195,7 @@ class LocalNewsActivity : ComponentActivity(){
             }
         }
     }
+
     // Convert Coordinates to Place Name
     fun getPlaceNameFromCoordinates(lat: Double, lng: Double): String? {
         return try {

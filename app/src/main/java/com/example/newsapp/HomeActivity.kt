@@ -87,7 +87,7 @@ fun HomeActivity(modifier: Modifier){
                     intentSource.putExtra("searchedQuery", searchedQuery.toString())
                     context.startActivity(intentSource)
                 },
-                enabled = isButtonEnabled,
+                enabled = checkQuery(searchedQuery),
                 modifier = Modifier.size(width = 85.dp, height = 55.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonColors(Color.Green,Color.Black,Color.Black,Color.Red)
@@ -134,6 +134,10 @@ fun HomeActivity(modifier: Modifier){
         }
 
     }
+}
+
+fun checkQuery(query: String): Boolean{
+    return query.isNotBlank()
 }
 
 @Preview(showBackground = true)
