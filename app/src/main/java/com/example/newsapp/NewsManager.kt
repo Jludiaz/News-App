@@ -209,7 +209,7 @@ class NewsManager {
 
     suspend fun retrieveArticlesForLocation(
         apiKey: String,
-        locationName: String
+        locationName: String?
     ): List<Article>{
         val urlBuilder = StringBuilder("https://newsapi.org/v2/everything?apiKey=$apiKey")
         urlBuilder.append("&qInTitle=${Uri.encode(locationName)}")
