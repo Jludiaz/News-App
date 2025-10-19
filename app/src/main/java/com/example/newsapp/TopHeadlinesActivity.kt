@@ -67,8 +67,9 @@ class TopHeadlinesActivity : ComponentActivity(){
         modifier: Modifier
     ){
         val context = LocalContext.current
-        var selectedHeadlineCategory by remember { mutableStateOf("general") }
+
         // Save to Headline Category to Preferences
+        var selectedHeadlineCategory by remember { mutableStateOf("general") }
         val prefs = context.getSharedPreferences(
             "my_prefs", Context.MODE_PRIVATE)
         prefs.edit {

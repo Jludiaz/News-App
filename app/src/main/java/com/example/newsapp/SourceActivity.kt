@@ -86,6 +86,7 @@ class SourceActivity : ComponentActivity(){
 fun SourceScreen(modifier: Modifier, searchedQuery: String?){
     val context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
+
     var category by remember { mutableStateOf("general") }
 
     Column(
@@ -202,7 +203,6 @@ fun DisplaySources(modifier: Modifier, category: String, searchedQuery: String?)
     val apiKey = context.getString(R.string.NewsKey)
     val newsManager = remember { NewsManager() }
 
-    //getter
     var mySourceList by remember {mutableStateOf<List<Source>>(emptyList())}
 
     // Launch NewsManager and retrieve all sources + save them to list

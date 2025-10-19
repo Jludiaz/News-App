@@ -51,8 +51,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LoginActivity(modifier: Modifier) {
-    var context = LocalContext.current
+    val context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
+
     var password by remember {mutableStateOf("")}
     var username by remember {
         (mutableStateOf(prefs.getString("username", "")?:"Enter username"))

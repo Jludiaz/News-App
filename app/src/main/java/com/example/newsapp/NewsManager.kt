@@ -206,4 +206,67 @@ class NewsManager {
             return emptyList()
         }
     }
+
+    suspend fun retrieveArticlesForLocation(
+        apiKey: String,
+        locationName: String
+    ): List<Article>{
+        val urlBuilder = StringBuilder("https://newsapi.org/v2/everything?apiKey=$apiKey")
+        urlBuilder.append("&qInTitle=${Uri.encode(locationName)}")
+
+        val request = Request.Builder()
+            .url(urlBuilder.toString())
+            .header("Authorization", "Bearer $apiKey")
+            .get()
+            .build()
+
+        // Debug my response call in case I don't establish a connection
+        val response: Response = okHttpClient.newCall(request).execute()
+        val responseBody = response.body?.string()
+        if (!response.isSuccessful || responseBody.isNullOrEmpty()) {
+            Log.e("NewsDebug", "retrieveArticlesForLocation HTTP error: ${response.code} - ${responseBody ?: "Empty"}")
+            return emptyList()
+        }
+
+        try {
+            // In case API does not fetch an article field
+            val json = JSONObject(responseBody)
+            if (!json.has("articles")) {
+                Log.e("NewsDebug", "retrieveTopHeadline No 'articles' field in response: $responseBody")
+                return emptyList()
+            }
+
+            // Get json information
+            val articles = mutableListOf<Article>()
+            val newsJSON = json.getJSONArray("articles")
+
+            for (i in 0 until newsJSON.length()) {
+                val articleObj = newsJSON.getJSONObject(i)
+                val sourceObj = articleObj.getJSONObject("source")
+                //Log.d("NewsDebug", "Created JSON sourceOBJ")
+
+                val article = Article(
+                    sourceId = sourceObj.optString("id", ""),
+                    sourceName = sourceObj.optString("name", ""),
+                    author = articleObj.optString("author", "Unknown"),
+                    title = articleObj.optString("title", "No title"),
+                    description = articleObj.optString("description", "No description"),
+                    url = articleObj.optString("url", ""),
+                    urlToImage = articleObj.optString("urlToImage", ""),
+                    publishedDate = articleObj.optString("publishedAt", ""),
+                    content = articleObj.optString("content", "")
+                )
+
+                // Add article to the source
+                articles.add(article)
+            }
+
+            Log.d("NewsDebug", "retrieveTopHeadline Fetched ${articles.size} articles successfully")
+            return articles
+
+        } catch (e: Exception) {
+            Log.e("NewsDebug", "retrieveTopHeadline JSON parsing failed", e)
+            return emptyList()
+        }
+    }
 }

@@ -102,11 +102,9 @@ class ResultsActivity : ComponentActivity(){
         //Launch NewsManager
         LaunchedEffect(searchedQuery, selectedSourceID){
             Log.d("NewsDebug", "Launching retrieveArticles for query=$searchedQuery source=$selectedSourceID")
-
             val result = withContext(Dispatchers.IO){
                 newsManager.retrieveArticles(apiKey,searchedQuery, selectedSourceID, selectedSourceName)
             }
-
             Log.d("NewsDebug", "Got ${result.size} articles")
             myArticleList = result
         }

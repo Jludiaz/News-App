@@ -58,6 +58,7 @@ class HomeActivity : ComponentActivity(){
 fun HomeActivity(modifier: Modifier){
     val context = LocalContext.current
     val prefs = remember{context.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)}
+
     var searchedQuery by remember {
         (mutableStateOf(prefs.getString("searchedQuery", "")?:"Search Query"))
     }
@@ -99,7 +100,6 @@ fun HomeActivity(modifier: Modifier){
 
         //TOP HEADLINES Activity Button
         TextButton(onClick = {
-            // Pass selectedHeadlineCategory to TopHeadlines
             val intent = Intent(context, TopHeadlinesActivity::class.java)
             context.startActivity(intent)
         }) {
@@ -116,8 +116,12 @@ fun HomeActivity(modifier: Modifier){
 
         Spacer(Modifier.height(100.dp))
 
-        //Local News Activity Button
-        TextButton(onClick = {}) {
+        // LOCAL NEWS Activity Button
+        TextButton(onClick =
+            {
+                val intent = Intent(context, LocalNewsActivity::class.java)
+                context.startActivity(intent)
+        }) {
             Text(
                 text = "LOCAL NEWS",
                 color = Color.Black,
