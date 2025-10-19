@@ -3,6 +3,7 @@ package com.example.newsapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -96,8 +97,12 @@ fun HomeActivity(modifier: Modifier){
 
         Spacer(Modifier.height(100.dp))
 
-        //Top Headlines Activity Button
-        TextButton(onClick = {}) {
+        //TOP HEADLINES Activity Button
+        TextButton(onClick = {
+            // Pass selectedHeadlineCategory to TopHeadlines
+            val intent = Intent(context, TopHeadlinesActivity::class.java)
+            context.startActivity(intent)
+        }) {
             Text(
                 text = "TOP HEADLINES",
                 color = Color.Black,
