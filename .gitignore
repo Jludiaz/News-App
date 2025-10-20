@@ -50,4 +50,6 @@ google-services.json
 .cxx
 local.properties
 secrets.properties
+newsAPIKey.xml
+mapsAPIKey.xml
 >>>>>>> 79d34f5 (First Commit Test)
